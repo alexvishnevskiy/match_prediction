@@ -2,3 +2,7 @@ pandas
 numpy
 Flask
 scikit-learn
+tqdm
+selenium
+psycopg2
+webdriver-manager

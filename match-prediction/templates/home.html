@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>
+            "Premier league matches prediction"
+        </title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <table>
+            {% for stats in data %}
+            <tr>
+                <td colspan="3">{{stats[0]}}</td>
+            </tr>
+            <tr>
+                <!-- переписать потом на нормальные url-->
+                <td colspan="2"><img height="100" src="{{ url_for('static', filename= '%s.png'|format(stats[-2])) }}"></td>
+                <td><img height="100" src="{{ url_for('static', filename= '%s.png'|format(stats[-1])) }}"></td>
+            </tr>
+            <tr>
+                <th style="text-align:left">{{stats[-2].title()}}</th>
+                <th style="text-align:center">vs</th>
+                <th style="text-align:left">{{stats[-1].title()}}</th>
+            </tr>
+            <tr>
+                <td style="padding-bottom:20px; text-align:left">{{stats[2]}}</td>
+                <td style="padding-bottom:20px; text-align:center">{{stats[3]}}</td>
+                <td style="padding-bottom:20px; text-align:left">{{stats[4]}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
