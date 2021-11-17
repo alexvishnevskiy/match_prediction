@@ -1,7 +1,6 @@
-import ops
-import scrapping
+from .ops import insert_games
+from .scrapping import get_all_matches_stats
 
-if __name__ == '__main__':
-   path = 'https://www.xscores.com/soccer/england/premier-league'
-   stats = scrapping.get_all_matches_stats(path)
-   ops.insert_games(stats)
+def get_init_table(path):
+   stats = get_all_matches_stats(path)
+   insert_games(stats)

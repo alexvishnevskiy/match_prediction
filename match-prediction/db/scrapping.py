@@ -5,7 +5,6 @@ import time
 import re
 
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -15,8 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 def get_driver():
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
-    driver = webdriver.Chrome(executable_path = ChromeDriverManager().install(), options = options)
-    #driver = webdriver.Chrome(executable_path = 'bins/chromedriver', options = options)
+    driver = webdriver.Remote('http://chrome:4444/wd/hub', options = options)
     return driver
 
 def get_paths(driver):

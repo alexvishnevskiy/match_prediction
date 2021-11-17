@@ -1,31 +1,61 @@
 version: '3'
 services:
-  web:
-    build: .
-  
-    ports:
-      - "8889:8889"
+  selenium:
+    platform: linux/amd64
+    image: "selenium/standalone-chrome"
+    
+    hostname: "chrome"
+    networks: 
+      - sashnevskiy
 
-    # Link database container to app container 
-    # for reachability.
-    links:
-      - "database:backenddb"
-    depends_on:
-      - database
-  
+    ports:
+      - "4445:4444"
+
   database:
+    #platform: linux/amd64
     # image to fetch from docker hub
     image: postgres:latest
+    #restart: always
+
+    networks:
+      - sashnevskiy
 
     # Environment variables for startup script
     # container will use these variables
     # to start the container with these defined variables. 
-    env_file:
-      - ./.env
+    environment:
+      - "POSTGRES_PASSWORD=mysecretpassword"
+
     # Mount init.sql file to automatically run 
     # and create tables for us.
     # everything in docker-entrypoint-initdb.d folder
     # is executed as soon as container is up nd running.
     # volumes:
     #   - "/usercode/db/init.sql:/docker-entrypoint-initdb.d/init.sql"
-    
+    depends_on:
+      - selenium
+
+  web:
+    platform: linux/amd64
+    #restart: always
+    build: .
+
+    hostname: "web"
+    networks:
+      - sashnevskiy
+
+    # volumes:
+    #   - .:/match-prediction
+    ports:
+      - "8889:8889"
+
+    # Link database container to app container 
+    # for reachability.
+    depends_on:
+      - selenium
+      - database
+
+networks:
+  sashnevskiy:
+    name: sashnevskiy
+    driver: bridge
