@@ -1,39 +1,28 @@
-version: '3'
+version: "3"
 services:
-  selenium:
-    platform: linux/amd64
-    image: "selenium/standalone-chrome"
-    
-    hostname: "chrome"
-    networks: 
-      - sashnevskiy
-
-    ports:
-      - "4445:4444"
-
   database:
-    #platform: linux/amd64
-    # image to fetch from docker hub
     image: postgres:latest
     #restart: always
+    hostname: "database"
+
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "games", "-U", "postgres" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+
+    ports:
+      - "5432:5432"
 
     networks:
       - sashnevskiy
 
-    # Environment variables for startup script
-    # container will use these variables
-    # to start the container with these defined variables. 
     environment:
       - "POSTGRES_PASSWORD=mysecretpassword"
+      - "POSTGRES_DB=games"
 
-    # Mount init.sql file to automatically run 
-    # and create tables for us.
-    # everything in docker-entrypoint-initdb.d folder
-    # is executed as soon as container is up nd running.
-    # volumes:
-    #   - "/usercode/db/init.sql:/docker-entrypoint-initdb.d/init.sql"
-    depends_on:
-      - selenium
+    volumes:
+      - "/home/ubuntu/ubuntu/match-prediction/init-sql:/docker-entrypoint-initdb.d/"
 
   web:
     platform: linux/amd64
@@ -44,16 +33,19 @@ services:
     networks:
       - sashnevskiy
 
-    # volumes:
-    #   - .:/match-prediction
+    environment:
+      - "FLASK_RUN_HOST=0.0.0.0"
+      - "FLASK_ENV=development"
+
     ports:
-      - "8889:8889"
+      - "5000:5000"
 
     # Link database container to app container 
     # for reachability.
+
     depends_on:
-      - selenium
-      - database
+      database:
+        condition: service_healthy
 
 networks:
   sashnevskiy:

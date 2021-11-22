@@ -7,14 +7,16 @@ import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support import expected_conditions as EC
 
 
 #add docs
 def get_driver():
     options = webdriver.ChromeOptions()
+    options.add_argument('--no-sandbox')
     options.add_argument("--headless")
-    driver = webdriver.Remote('http://chrome:4444/wd/hub', options = options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options = options)
     return driver
 
 def get_paths(driver):
@@ -147,6 +149,9 @@ def get_matches_stats(path, rounds_n: Iterable):
     return stats_data
 
 def get_all_matches_stats(path):
-    rounds_n = range(1, max_rounds(path)+1)
+    #rounds_n = range(1, max_rounds(path)+1)
+    rounds_n = range(1, 2)
+    print(rounds_n)
     stats_data = get_matches_stats(path, rounds_n)
+    print(stats_data)
     return stats_data
