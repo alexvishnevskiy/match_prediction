@@ -1,14 +1,21 @@
-from sklearn import linear_model
-import numpy as np
+from prepare_data import prepare_dataset
 import pandas as pd
+import numpy as np
+import pathlib
 import joblib
+import os
 
 
-def predict(X, model_path):
-    if isinstance(X, list):
-        X = np.array(X)
-    assert X.shape[1] == 13, 'number of features should be 13'
+def load_model():
+    model_path = os.path.join(
+        pathlib.Path(__file__).parent.resolve().parents[0], 'models/forest.joblib')
+    model = joblib.load(model_path)
+    return model
 
-    regressor = joblib.load(model_path)
-    output = regressor.predict(X)
-    return output
+def predict(window_size = 5):
+    data = prepare_dataset('predict', window_size)
+    model = load_model()
+    probs = model.predict_proba(data)
+    return probs
+
+print(predict())

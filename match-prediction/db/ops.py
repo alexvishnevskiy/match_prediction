@@ -1,3 +1,4 @@
+import os
 import psycopg2
 from configparser import ConfigParser
 
@@ -28,15 +29,20 @@ def insert_games(data):
         cur = conn.cursor()
         args_str = ','.join(cur.mogrify(f"({', '.join(['%s']*len(x))})", list(x.values())).decode("utf-8") for x in data)
         
-        cur.execute("INSERT INTO games VALUES " + args_str) 
+        cur.execute(f"INSERT INTO games VALUES {args_str};") 
         conn.commit()
         cur.close()
-        print(f"{len(data)} rows've been inserted")
+        print(f"data's been inserted")
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:
         if conn is not None:
             conn.close()
+
+#to be done
+#update played: 0->1
+def update():
+    pass
 
 def retrieve(condition: str = None):
     try:

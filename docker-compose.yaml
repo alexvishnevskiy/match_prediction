@@ -21,31 +21,31 @@ services:
       - "POSTGRES_PASSWORD=mysecretpassword"
       - "POSTGRES_DB=games"
 
-    volumes:
-      - "/home/ubuntu/ubuntu/match-prediction/init-sql:/docker-entrypoint-initdb.d/"
+    # volumes:
+    #   - "/home/ubuntu/ubuntu/match-prediction/init-sql:/docker-entrypoint-initdb.d/"
 
-  web:
-    platform: linux/amd64
-    #restart: always
-    build: .
+  # web:
+  #   platform: linux/amd64
+  #   #restart: always
+  #   build: .
 
-    hostname: "web"
-    networks:
-      - sashnevskiy
+  #   hostname: "web"
+  #   networks:
+  #     - sashnevskiy
 
-    environment:
-      - "FLASK_RUN_HOST=0.0.0.0"
-      - "FLASK_ENV=development"
+  #   environment:
+  #     - "FLASK_RUN_HOST=0.0.0.0"
+  #     - "FLASK_ENV=development"
 
-    ports:
-      - "5000:5000"
+  #   ports:
+  #     - "5000:5000"
 
-    # Link database container to app container 
-    # for reachability.
+  #   # Link database container to app container 
+  #   # for reachability.
 
-    depends_on:
-      database:
-        condition: service_healthy
+  #   depends_on:
+  #     database:
+  #       condition: service_healthy
 
 networks:
   sashnevskiy:

@@ -6,20 +6,38 @@ import re
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.command import Command
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import StaleElementReferenceException
 
 
-#add docs
 def get_driver():
-    options = webdriver.ChromeOptions()
-    options.add_argument('--no-sandbox')
-    options.add_argument("--headless")
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options = options)
+    def _driver():
+        options = webdriver.ChromeOptions()
+        options.add_argument('--no-sandbox')
+        options.add_argument("--headless")
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options = options)
+        return driver
+
+    def get_status(driver):
+        try:
+            driver.execute(Command.STATUS)
+            return True
+        except:
+            return False
+
+    start_time = time.time()
+    driver = _driver()
+    while not get_status(driver):
+        driver = _driver()
+        if time.time() - start_time > 30:
+            raise TimeoutError("driver is not initialized")
     return driver
 
 def get_paths(driver):
+    WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CLASS_NAME, 'ind_match_wrapper')))
     match_paths = list(map(lambda x: x.get_dom_attribute('href'), 
                            driver.find_elements(By.CLASS_NAME, 'ind_match_wrapper')))
     match_paths = match_paths[1:]
@@ -39,7 +57,7 @@ def get_match_stats(driver, path):
     try:       
         driver.get(path)
 
-        regex_ref = re.compile("Referee: ((\w+|\s+)+)\n")
+        regex_ref = re.compile("Referee: ((\w+|\s*)+)\n*")
         regex_stat = lambda x: re.compile(f"{x}\n(\d+)\n(\d+)")
 
         stats_dict = dict()
@@ -51,12 +69,25 @@ def get_match_stats(driver, path):
             ('Red Cards', 'hr', 'ar')
         ]
 
-        score = driver.find_element(By.CLASS_NAME, 'match_details_score').text.split(' - ')
-        date = driver.find_element(By.CLASS_NAME, 'match_details_date').text
+        score = (
+            WebDriverWait(driver, 20)
+            .until(EC.presence_of_element_located((By.CLASS_NAME, 'match_details_score'))).text.split(' - ')
+            )
+        date = (
+            WebDriverWait(driver, 20)
+            .until(EC.presence_of_element_located((By.CLASS_NAME, 'match_details_date'))).text
+        )
         date = datetime.strptime(date, 'Match date: %d-%m-%Y / %H:%M')
         try:
-            referee = regex_ref.search(driver.find_element(By.CLASS_NAME, 'game_info_overview').text).group(1)
-            bet1x, betx, bet2x = driver.find_element(By.CLASS_NAME, 'mDetails-odds').text.split('\n')[1::2]
+            game_info_overview = (
+                WebDriverWait(driver, 20)
+                .until(EC.presence_of_element_located((By.CLASS_NAME, 'game_info_overview'))).text
+            )
+            bet1x, betx, bet2x = (
+                WebDriverWait(driver, 20)
+                .until(EC.presence_of_element_located((By.CLASS_NAME, 'mDetails-odds'))).text.split('\n')[1::2]
+            )
+            referee = regex_ref.search(game_info_overview).group(1)
         except:
             referee, bet1x, betx, bet2x = None, None, None, None
 
@@ -81,7 +112,11 @@ def get_match_stats(driver, path):
             stats_dict['ftag'] = score[1]
             stats_dict['ftr'] = get_ftr(score[0], score[1])
 
-            driver.find_element(By.XPATH, '//*[@id="scoretable"]/div/div[6]/div/div/div/div[4]').click()
+            element = (
+                WebDriverWait(driver, 20)
+                .until(EC.element_to_be_clickable((By.XPATH, '//*[@id="scoretable"]/div/div[6]/div/div/div/div[4]')))
+                .click()
+            )
             start_time = time.time()
             stats = ''
             while stats == '':
@@ -102,7 +137,7 @@ def get_match_stats(driver, path):
 def max_rounds(path):
     driver = get_driver()
     driver.get(path)
-    round_select = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'round_select')))
+    round_select = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CLASS_NAME, 'round_select')))
     max_rounds = int(round_select.text.split('\n')[-1])
     return max_rounds
 
@@ -110,16 +145,15 @@ def get_round_links(path: str, rounds_n: Iterable):
     try:
         driver = get_driver()
         driver.get(path)
+
         round_selection = lambda x: (
-            WebDriverWait(driver, 5)
+            WebDriverWait(driver, 20, ignored_exceptions=StaleElementReferenceException)
             .until(EC.presence_of_element_located((By.CLASS_NAME, 'round_select')))
-            .find_element(By.XPATH, f'//*[@id="scoretable"]/div[1]/div[3]/div/div/div[1]/div/select/option[{x}]')
-            .click()
+            .find_elements_by_tag_name("option")[x-1].click()
         )
 
         match_paths, pair_teams = [], []
         for n in tqdm(rounds_n, desc = 'getting round links'):
-            WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'round_select')))
             round_selection(n)
             time.sleep(1)
             paths, teams = get_paths(driver)
@@ -138,7 +172,9 @@ def get_matches_stats(path, rounds_n: Iterable):
     links, matches = get_round_links(path, rounds_n)
     
     for link in tqdm(links, desc = 'getting stats about matches'):
-        stats_data.append(get_match_stats(driver, link))
+        match_stats = get_match_stats(driver, link)
+        if match_stats['B365H'] != 'OFF':
+            stats_data.append(match_stats)
         
     for stat_dict, teams in zip(stats_data, matches):
         stat_dict['HomeTeam'] = teams[0]
@@ -150,8 +186,6 @@ def get_matches_stats(path, rounds_n: Iterable):
 
 def get_all_matches_stats(path):
     #rounds_n = range(1, max_rounds(path)+1)
-    rounds_n = range(1, 2)
-    print(rounds_n)
+    rounds_n = range(8, 16)
     stats_data = get_matches_stats(path, rounds_n)
-    print(stats_data)
     return stats_data
