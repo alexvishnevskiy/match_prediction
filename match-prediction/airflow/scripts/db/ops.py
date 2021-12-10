@@ -1,4 +1,3 @@
-import os
 import psycopg2
 from configparser import ConfigParser
 
@@ -40,21 +39,64 @@ def insert_games(data):
             conn.close()
 
 #to be done
-#update played: 0->1
-def update():
-    pass
-
-def retrieve(condition: str = None):
+#update 0->1
+#model predictions
+def update(data):
     try:
         params = config()
         print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
 
         cur = conn.cursor()
-        if condition:
-            cur.execute(f"SELECT * FROM games WHERE {condition}") 
+
+        if len(data[0]) == 3:
+            dates, hometeams, awayteams = zip(*data)
+            statement = f"""
+            UPDATE games set played = 1
+                WHERE matchdate in {dates}
+                AND hometeam in {hometeams}
+                AND awayteam in {awayteams}
+            """
         else:
-            cur.execute("SELECT * FROM games") 
+            dates, hometeams, awayteams, probs = zip(*data)
+            statement = f"""
+            UPDATE games set
+                probs_1x = c.probs_1x,
+                probs_x = c.probs_x,
+                probs_2x = c.probs_2x
+            FROM (values {probs}
+            ) as c(probs_1x, probs_x, probs_2x)
+            WHERE matchdate in {dates}
+                AND hometeam in {hometeams}
+                AND awayteam in {awayteams}
+            """
+
+        cur.execute(statement) 
+        conn.commit()
+        cur.close()
+        print(f"data's been updated")
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+def retrieve(columns = None, condition: str = None):
+    try:
+        params = config()
+        print('Connecting to the PostgreSQL database...')
+        conn = psycopg2.connect(**params)
+
+        cur = conn.cursor()
+        if columns is not None:
+            statement = f"SELECT {', '.join(columns)} FROM games"
+        else:
+            statement = "SELECT * FROM games"
+
+        if condition:
+            cur.execute(f"{statement} WHERE {condition}") 
+        else:
+            cur.execute(statement) 
         records = cur.fetchall()
 
         cur.close()

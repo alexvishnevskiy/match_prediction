@@ -20,4 +20,7 @@ create table if not exists games (
     ar integer,
     hometeam varchar(50) not null,
     awayteam varchar(50) not null, 
+    probs_1x float default null,
+    probs_x float default null,
+    probs_2x float default null,
     unique (hometeam, awayteam, matchdate));

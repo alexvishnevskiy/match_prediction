@@ -186,6 +186,6 @@ def get_matches_stats(path, rounds_n: Iterable):
 
 def get_all_matches_stats(path):
     #rounds_n = range(1, max_rounds(path)+1)
-    rounds_n = range(8, 16)
+    rounds_n = range(1, 17)
     stats_data = get_matches_stats(path, rounds_n)
     return stats_data

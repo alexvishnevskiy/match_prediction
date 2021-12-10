@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, render_template
-from db.ops import retrieve
-import time
+from airflow.scripts.db.ops import retrieve
 
 
 app = Flask(__name__)

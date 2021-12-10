@@ -137,4 +137,27 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-database.ini
+# Airflow configuration
+airflow.cfg
+webserver_config.py
+unittests.cfg
+airflow_login.py
+dbinit.py
+initdb.py
+secrets.py
+
+# Airflow sqlite databases
+airflow.db
+unittests.db
+
+# Airflow temporary artifacts
+airflow/git_version
+airflow/www/static/coverage/
+airflow/www/static/dist
+
+match-prediction/airflow/logs/scheduler/latest
+airflow/logs/
+airflow-webserver.log
+airflow-webserver.pid
+airflow-webserver.err
+airflow-webserver.out

@@ -18,4 +18,4 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
   && apt-get update && apt-get -qqy install ${CHROME_VERSION:-google-chrome-stable}
 
 #initialize table and run
-CMD python3 match-prediction/db/on_init.py; python3 match-prediction/main.py
+CMD python3 match-prediction/airflow/scripts/db/on_init.py; python3 match-prediction/main.py
