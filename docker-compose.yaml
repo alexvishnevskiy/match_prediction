@@ -1,51 +1,46 @@
 version: "3"
 services:
   database:
-    image: postgres:latest
-    #restart: always
-    hostname: "database"
+    image: postgres:alpine
+    restart: always
+    hostname: database
 
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "games", "-U", "postgres" ]
-      timeout: 45s
+      timeout: 5s
       interval: 10s
       retries: 10
 
     ports:
+      #- "5433:5432"
       - "5432:5432"
 
     networks:
       - sashnevskiy
 
-    environment:
+    environment: 
       - "POSTGRES_PASSWORD=mysecretpassword"
       - "POSTGRES_DB=games"
+      - "POSTGRES_USER=postgres"
 
-    # volumes:
-    #   - "/home/ubuntu/ubuntu/match-prediction/init-sql:/docker-entrypoint-initdb.d/"
+    volumes:
+      - "./match_prediction/init-sql:/docker-entrypoint-initdb.d"
 
-  # web:
-  #   platform: linux/amd64
-  #   #restart: always
-  #   build: .
+  web:
+    restart: always
+    build: .
 
-  #   hostname: "web"
-  #   networks:
-  #     - sashnevskiy
+    hostname: "web"
+    env_file: .env
+    networks:
+      - sashnevskiy
+      
+    ports:
+      - "5005:5005"
 
-  #   environment:
-  #     - "FLASK_RUN_HOST=0.0.0.0"
-  #     - "FLASK_ENV=development"
-
-  #   ports:
-  #     - "5000:5000"
-
-  #   # Link database container to app container 
-  #   # for reachability.
-
-  #   depends_on:
-  #     database:
-  #       condition: service_healthy
+    depends_on:
+      database:
+        condition: service_healthy
 
 networks:
   sashnevskiy:

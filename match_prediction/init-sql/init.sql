@@ -1,0 +1,15 @@
+create table if not exists games (
+    winner varchar(15) default null,
+    fthg integer default null,
+    ftag integer default null,
+    hthg integer default null,
+    htag integer default null,
+    home_team varchar(50),
+    away_team varchar(50 ),
+    status varchar(15),
+    match_date timestamp not null,
+    referee varchar(50) default null,
+    probs_1x float default null,
+    probs_x float default null,
+    probs_2x float default null,
+    unique (home_team, away_team, match_date));
