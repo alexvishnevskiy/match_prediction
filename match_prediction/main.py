@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, render_template
 from airflow.scripts.db.ops import retrieve
+from waitress import serve
 
 
 app = Flask(__name__)
-
 
 def choose_color(data: list):
     color_mapping = {
@@ -38,4 +38,5 @@ def home():
 
 
 if __name__ == "__main__":
-    app.run(port=5005, host = "0.0.0.0", debug=True)
+    serve(app, host='0.0.0.0', port=5005)
+    # app.run(port=5005, host = "0.0.0.0", debug=True)
