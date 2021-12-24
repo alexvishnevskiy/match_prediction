@@ -1,3 +1,4 @@
+from airflow.scripts.get_logger import get_logger
 from flask import Flask, jsonify, render_template
 from airflow.scripts.db.ops import retrieve
 from waitress import serve
@@ -28,15 +29,20 @@ def choose_color(data: list):
 
 @app.route("/")
 def home():
-    condition = """
-    referee IS NOT NULL
-    and status = 'SCHEDULED'
-    """
-    data = retrieve(condition = condition)
-    data = choose_color(data)
+    logger = get_logger(__file__)
+    
+    try:
+        condition = """
+        referee IS NOT NULL
+        and status = 'SCHEDULED'
+        """
+        data = retrieve(condition = condition)
+        data = choose_color(data)
+    except Exception as e:
+        logger.exception(e)
     return render_template('home.html', data = data)
 
 
 if __name__ == "__main__":
     serve(app, host='0.0.0.0', port=5005)
-    # app.run(port=5005, host = "0.0.0.0", debug=True)
+    #app.run(port=5005, host = "0.0.0.0", debug=False)

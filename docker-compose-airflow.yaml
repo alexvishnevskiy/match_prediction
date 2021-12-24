@@ -1,10 +1,6 @@
 version: '3'
 x-airflow-common:
   &airflow-common
-  # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
-  # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  #image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.2.2}
   build:
       context: .
       dockerfile: Dockerfile-airflow
@@ -18,12 +14,10 @@ x-airflow-common:
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-    #AIRFLOW_HOME: '/match-prediction'
     AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-    API_TOKEN: <YOUR API_TOKEN>
+    API_TOKEN: <YOUR_API_TOKEN>
   volumes:
-    # - ./match_prediction/airflow/dags:/opt/airflow/dags
     - ./match_prediction/airflow/logs:/match_prediction/match_prediction/airflow/logs
     - ./match_prediction/airflow/plugins:/match_prediction/match_prediction/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
@@ -114,8 +108,6 @@ services:
       retries: 5
     environment:
       <<: *airflow-common-env
-      # Required to handle warm shutdown of the celery workers properly
-      # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
       DUMB_INIT_SETSID: "0"
     restart: always
     depends_on:
@@ -142,7 +134,6 @@ services:
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
-    # yamllint disable rule:line-length
     command:
       - -c
       - |
@@ -227,7 +218,6 @@ services:
     environment:
       <<: *airflow-common-env
       CONNECTION_CHECK_MAX_COUNT: "0"
-    # Workaround for entrypoint issue. See: https://github.com/apache/airflow/issues/16252
     command:
       - bash
       - -c

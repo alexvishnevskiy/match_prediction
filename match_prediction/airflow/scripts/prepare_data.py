@@ -1,3 +1,4 @@
+from match_prediction.airflow.scripts.get_logger import get_logger
 from .consts.db_vars import DB_COLUMNS, DATA_COLUMNS, TEAMS
 from sklearn.preprocessing import LabelEncoder
 from collections import defaultdict
@@ -74,25 +75,29 @@ def prepare_dataset(stage = 'train', window_size = 5):
         if res.shape[1]:
             res_arr[:, :res.shape[1]] = res
         return res_arr.ravel()
-
-    data: list = retrieve_data()
-    data = pd.DataFrame(data, columns=DB_COLUMNS)
-    data['match_date'] = pd.to_datetime(data['match_date'])
-    data = data.sort_values('match_date')
-
-    columns = ['winner', 'fthg', 'ftag', 'hthg', 'htag']
-    new_columns = list(reduce(lambda x, y: x+y, 
-                         [[f'{col}_{i}' for i in range(window_size, 0, -1)] for col in columns]))
-    new_columns_home = list(map(lambda x: x+'_home', new_columns))
-    new_columns_away = list(map(lambda x: x+'_away', new_columns))
-            
-    data[new_columns_home] = np.vstack(data.apply(get_stats, axis = 1, home = True).values)
-    data[new_columns_away] = np.vstack(data.apply(get_stats, axis = 1, home = False).values)
     
-    if stage != 'predict':
-        data = data[data['status'] == 'FINISHED']
-        data = data.drop(columns = [
-            'status', 'match_date', 'probs_1x', 'probs_x', 'probs_2x', 'fthg', 'ftag', 'hthg', 'htag'
-        ])
-        data = data.dropna(subset = ['fthg_4_home', 'fthg_4_away'])
+    logger = get_logger(__file__)
+    try:
+        data: list = retrieve_data()
+        data = pd.DataFrame(data, columns=DB_COLUMNS)
+        data['match_date'] = pd.to_datetime(data['match_date'])
+        data = data.sort_values('match_date')
+
+        columns = ['winner', 'fthg', 'ftag', 'hthg', 'htag']
+        new_columns = list(reduce(lambda x, y: x+y, 
+                            [[f'{col}_{i}' for i in range(window_size, 0, -1)] for col in columns]))
+        new_columns_home = list(map(lambda x: x+'_home', new_columns))
+        new_columns_away = list(map(lambda x: x+'_away', new_columns))
+                
+        data[new_columns_home] = np.vstack(data.apply(get_stats, axis = 1, home = True).values)
+        data[new_columns_away] = np.vstack(data.apply(get_stats, axis = 1, home = False).values)
+        
+        if stage != 'predict':
+            data = data[data['status'] == 'FINISHED']
+            data = data.drop(columns = [
+                'status', 'match_date', 'probs_1x', 'probs_x', 'probs_2x', 'fthg', 'ftag', 'hthg', 'htag'
+            ])
+            data = data.dropna(subset = ['fthg_4_home', 'fthg_4_away'])
+    except Exception as e:
+        logger.exception(e)
     return data

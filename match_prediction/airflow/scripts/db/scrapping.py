@@ -1,4 +1,6 @@
+from match_prediction.airflow.scripts.get_logger import get_logger
 from datetime import datetime
+from logging import log
 import requests
 import os
 
@@ -53,14 +55,19 @@ def parse_json(json_file):
     return match_stats
 
 def get_all_matches_stats():
-    api_token = os.environ['API_TOKEN']
-    request = 'https://api.football-data.org/v2/competitions/PL/matches'
+    logger = get_logger(__file__)
 
-    response = requests.get(
-        request,
-        headers={'X-Auth-Token': api_token}
-    ).json()
-    res = parse_json(response)
+    try:
+        api_token = os.environ['API_TOKEN']
+        request = 'https://api.football-data.org/v2/competitions/PL/matches'
+
+        response = requests.get(
+            request,
+            headers={'X-Auth-Token': api_token}
+        ).json()
+        res = parse_json(response)
+    except Exception as e:
+        logger.exception(e)
     return res
 
 #print(get_all_matches_stats()[0])

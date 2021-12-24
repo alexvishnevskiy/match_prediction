@@ -1,3 +1,4 @@
+from match_prediction.airflow.scripts.get_logger import get_logger
 from configparser import ConfigParser
 from typing import Union
 import numpy as np
@@ -23,9 +24,10 @@ def config(filename='match_prediction/airflow/scripts/db/database.ini', section=
     return db
 
 def create_temp_table(table_name: str = 'probs'):
+    logger = get_logger(__file__)
+
     try:
         params = config()
-        print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
 
         cur = conn.cursor()
@@ -41,18 +43,19 @@ def create_temp_table(table_name: str = 'probs'):
         cur.execute(create_statement) 
         conn.commit()
         cur.close()
-        print(f"data's been inserted")
+        logger.info(f"data's been inserted")
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.exception(error)
     finally:
         if conn is not None:
             conn.close()
 
 #def insert_games(data: Union[list[dict], dict, list], table_name: str = 'games'):
 def insert_games(data, table_name: str = 'games'):
+    logger = get_logger(__file__)
+
     try:
         params = config()
-        print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
 
@@ -66,18 +69,19 @@ def insert_games(data, table_name: str = 'games'):
         cur.execute(f"INSERT INTO {table_name} VALUES {args_str};") 
         conn.commit()
         cur.close()
-        print(f"data's been inserted")
+        logger.info(f"data's been inserted")
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.exception(error)
     finally:
         if conn is not None:
             conn.close()
 
 #def update(data: Union[list[dict], pd.DataFrame]):
 def update(data):
+    logger = get_logger(__file__)
+
     try:
         params = config()
-        print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
 
         cur = conn.cursor()
@@ -126,17 +130,18 @@ def update(data):
             cur.close()
 
             insert_games(data.to_dict(orient = 'list'))
-        print(f"data's been updated")
+        logger.info(f"data's been updated")
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.exception(error)
     finally:
         if conn is not None:
             conn.close()
 
 def retrieve(columns = None, condition: str = None):
+    logger = get_logger(__file__)
+
     try:
         params = config()
-        print('Connecting to the PostgreSQL database...')
         conn = psycopg2.connect(**params)
 
         cur = conn.cursor()
@@ -153,7 +158,7 @@ def retrieve(columns = None, condition: str = None):
 
         cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.exception(error)
     finally:
         if conn is not None:
             conn.close()

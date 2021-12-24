@@ -4,15 +4,15 @@ services:
     image: traefik:2.2
     container_name: traefik
     command:
-      - --providers.docker
+      - --providers.docker=true
       - --providers.docker.exposedbydefault=false
-      - --entrypoints.http.address=:5005
+      - --entrypoints.web.address=:80
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - sashnevskiy
     ports:
-      - 5005:5005
+      - 80:80
 
   database:
     image: postgres:alpine
@@ -49,7 +49,7 @@ services:
 
     hostname: "web"
     environment:
-      - "API_TOKEN=<YOUR_API_TOKEN>"
+      - API_TOKEN=<YOUR_API_TOKEN>
     networks:
       - sashnevskiy
 
@@ -58,11 +58,8 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.web.rule=Host(`match_prediction.localhost`)
-      - traefik.http.routers.web.entrypoints=http
-  
-    # ports:
-    #   - "5005:5005"
+      - traefik.http.routers.web.entrypoints=web
+      - traefik.http.routers.web.rule=Host(`match-prediction.localhost`)
 
     depends_on:
       database:

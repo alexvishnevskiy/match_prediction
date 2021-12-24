@@ -1,5 +1,6 @@
 from match_prediction.airflow.scripts.prepare_data import prepare_dataset, encode_data, get_model_path
 from match_prediction.airflow.scripts.db.ops import update
+from match_prediction.airflow.scripts.get_logger import get_logger
 import pandas as pd
 import numpy as np
 import pickle
@@ -13,6 +14,7 @@ def load_model():
     return model
 
 def predict(window_size = 5):
+    logger = get_logger(__file__)
     enc_path = get_model_path(False)
     assert os.path.exists(enc_path), 'encoding dict should be trained'
 
@@ -32,7 +34,7 @@ def predict(window_size = 5):
     init_data = init_data[init_data.columns[:13]]
     init_data = init_data.astype(object).where(pd.notnull(init_data),None)
     update(init_data)
-    print("prediction's been done")
+    logger.info("prediction's been done")
 
 if __name__ == '__main__':
     predict()

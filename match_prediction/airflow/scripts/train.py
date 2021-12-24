@@ -1,3 +1,4 @@
+from match_prediction.airflow.scripts.get_logger import get_logger
 from match_prediction.airflow.scripts.prepare_data import prepare_dataset, encode_data, get_model_path
 from sklearn.ensemble import RandomForestClassifier
 from match_prediction.airflow.scripts.db.scrapping import get_all_matches_stats
@@ -7,22 +8,27 @@ import numpy as np
 
 
 def fit():
-    #data: list[dict] = get_all_matches_stats()
-    data = get_all_matches_stats()
-    data = list(filter(lambda x: x['referee'] is not None, data))
-    update(data)
+    logger = get_logger(__file__)
 
-    data = prepare_dataset(stage = 'train')
-    data = encode_data(data)
-    y = data.pop('winner')
-    X = data
+    try:
+        #data: list[dict] = get_all_matches_stats()
+        data = get_all_matches_stats()
+        data = list(filter(lambda x: x['referee'] is not None, data))
+        update(data)
 
-    forest = RandomForestClassifier(n_estimators=300, max_depth=4, random_state=42)
-    forest.fit(X, y)
+        data = prepare_dataset(stage = 'train')
+        data = encode_data(data)
+        y = data.pop('winner')
+        X = data
 
-    model_path = get_model_path()
-    joblib.dump(forest, model_path)
-    print("training's done")
+        forest = RandomForestClassifier(n_estimators=300, max_depth=4, random_state=42)
+        forest.fit(X, y)
+
+        model_path = get_model_path()
+        joblib.dump(forest, model_path)
+        logger.info("training's done")
+    except Exception as e:
+        logger.exception(e)
 
 if __name__ == '__main__':
     fit()
