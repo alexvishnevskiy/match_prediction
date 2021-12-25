@@ -1,7 +1,6 @@
 # match-prediction
 
 This repository provides website for Premier League games predictions with scheduled workflow that updates games and probabilities.
-### airlfow webserver: http://ec2-3-144-216-12.us-east-2.compute.amazonaws.com:8080/
 
 ### example web: ![web image](match_prediction/static/examples/match-prediction-example.png)
 
