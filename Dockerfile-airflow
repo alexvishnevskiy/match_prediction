@@ -3,6 +3,7 @@ FROM apache/airflow:latest
 WORKDIR /match_prediction
 
 ENV AIRFLOW_HOME=/match_prediction/match_prediction/airflow
+ENV chmod -R 777 ${AIRFLOW_HOME}
 ENV PYTHONPATH "${PYTHONPATH}:${AIRFLOW_HOME}"
 
 COPY requirements.txt requirements.txt

@@ -16,7 +16,7 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKEND: 'airflow.api.auth.backend.basic_auth'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-    API_TOKEN: <YOUR_API_TOKEN>
+    API_TOKEN: 
   volumes:
     - ./match_prediction/airflow/logs:/match_prediction/match_prediction/airflow/logs
     - ./match_prediction/airflow/plugins:/match_prediction/match_prediction/airflow/plugins

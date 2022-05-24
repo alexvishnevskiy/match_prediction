@@ -49,7 +49,7 @@ services:
 
     hostname: "web"
     environment:
-      - API_TOKEN=<YOUR_API_TOKEN>
+      - API_TOKEN=
     networks:
       - sashnevskiy
 
